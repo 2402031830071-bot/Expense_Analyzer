@@ -10,7 +10,14 @@ from sklearn.linear_model import LinearRegression
 import warnings
 warnings.filterwarnings('ignore')
 
-st.set_page_config(page_title="AI Expense Analyzer", page_icon="💰", layout="wide")
+st.set_page_config( 
+    st.markdown("""<style>
+... (the big CSS block from the file)
+</style>""", unsafe_allow_html=True)
+    page_title="Finance Dashboard",
+    page_icon="📈",
+    layout="wide",
+)
 st.title(" AI Expense Analyzer Dashboard")
 
 uploaded = st.file_uploader("Upload your Expenses_clean.csv", type="csv")
@@ -76,7 +83,17 @@ if uploaded:
         c1, c2 = st.columns(2)
         with c1:
             st.subheader("Monthly Spending Trend")
-            fig, ax = plt.subplots(figsize=(7,4))
+            fig, ax = plt.subplots(figsize=(7,4)) 
+            fig1.patch.set_facecolor('#161b22')
+ax1.set_facecolor('#0d1117')
+ax1.tick_params(colors='#f9f871')
+ax1.yaxis.label.set_color('#f9f871')
+ax1.xaxis.label.set_color('#f9f871')
+for spine in ax1.spines.values():
+    spine.set_edgecolor('#f9f871')
+
+
+            
             ax.plot(monthly_df['month'], monthly_df['total'], marker='o', color='#3498db', linewidth=2.5)
             ax.fill_between(monthly_df['month'], monthly_df['total'], alpha=0.15, color='#3498db')
             ax.set_xticks(monthly_df['month'])
@@ -84,9 +101,21 @@ if uploaded:
             ax.set_ylabel("Amount (₹)")
             ax.grid(True, alpha=0.3)
             st.pyplot(fig)
+
         with c2:
             st.subheader("Spending by Category")
             fig2, ax2 = plt.subplots(figsize=(7,4))
+            fig2, ax2 = plt.subplots(figsize=(10,4))
+fig2.patch.set_facecolor('#161b22')
+ax2.set_facecolor('#0d1117')
+ax2.tick_params(colors='#89cff0')
+ax2.yaxis.label.set_color('#89cff0')
+ax2.xaxis.label.set_color('#89cff0')
+for spine in ax2.spines.values():
+    spine.set_edgecolor('#89cff0')
+
+
+            
             top6 = cat_totals.head(6)
             others = cat_totals.iloc[6:].sum()
             vals = list(top6.values) + [others]
@@ -98,12 +127,35 @@ if uploaded:
         with c3:
             st.subheader("Spending by Account")
             fig3, ax3 = plt.subplots(figsize=(7,3))
+            fig3, ax3 = plt.subplots(figsize=(10,4))
+fig3.patch.set_facecolor('#161b22')
+ax3.set_facecolor('#0d1117')
+ax3.tick_params(colors='#c3b1e1')
+ax3.yaxis.label.set_color('#c3b1e1')
+ax3.xaxis.label.set_color('#c3b1e1')
+for spine in ax3.spines.values():
+    spine.set_edgecolor('#c3b1e1')
+
+
+            
             ax3.bar(acct_totals.index, acct_totals.values, color=['#9b59b6','#3498db','#e74c3c'])
             ax3.set_ylabel("Amount (₹)")
             st.pyplot(fig3)
+
         with c4:
             st.subheader("Spending by Day of Week")
             fig4, ax4 = plt.subplots(figsize=(7,3))
+            fig4, ax4 = plt.subplots(figsize=(10,4))
+fig4.patch.set_facecolor('#161b22')
+ax4.set_facecolor('#0d1117')
+ax4.tick_params(colors='#ffb347')
+ax4.yaxis.label.set_color('#ffb347')
+ax4.xaxis.label.set_color('#ffb347')
+for spine in ax4.spines.values():
+    spine.set_edgecolor('#ffb347')
+
+
+            
             dow = df.groupby('day_of_week')['amount'].sum()
             day_names = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
             ax4.bar(range(len(dow)), dow.values, color='#e67e22')
@@ -147,7 +199,18 @@ if uploaded:
         forecast = lr.predict(future_months)
         labels = ['Dec 2025','Jan 2026','Feb 2026']
 
+        fig5, ax5 = plt.subplots(figsize=(10,4)) 
         fig5, ax5 = plt.subplots(figsize=(10,4))
+fig5.patch.set_facecolor('#161b22')
+ax5.set_facecolor('#0d1117')
+ax5.tick_params(colors='#ffb6c1')
+ax5.yaxis.label.set_color('#ffb6c1')
+ax5.xaxis.label.set_color('#ffb6c1')
+for spine in ax5.spines.values():
+    spine.set_edgecolor('#ffb6c1') 
+        
+
+        
         ax5.plot(monthly_df['month'], monthly_df['total'],
                  marker='o', color='#3498db', label='Actual', linewidth=2)
         future_x = [monthly_df['month'].iloc[-1], 12, 13, 14]
