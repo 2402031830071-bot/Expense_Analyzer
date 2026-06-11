@@ -54,10 +54,10 @@ if uploaded:
 
     # ── Metric cards ──
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Spent", f"{df['amount'].sum():.0f} BYN")
+    col1.metric("Total Spent", f"{df['amount'].sum():.0f} ₹")
     col2.metric(" Transactions", len(df))
     monthly_avg = df.groupby('month')['amount'].sum().mean()
-    col3.metric(" Avg/Month", f"{monthly_avg:.0f} BYN")
+    col3.metric(" Avg/Month", f"{monthly_avg:.0f} ₹")
     col4.metric(" Categories", df['category'].nunique())
 
     st.divider()
@@ -81,7 +81,7 @@ if uploaded:
             ax.fill_between(monthly_df['month'], monthly_df['total'], alpha=0.15, color='#3498db')
             ax.set_xticks(monthly_df['month'])
             ax.set_xticklabels([month_map[m] for m in monthly_df['month']], rotation=45)
-            ax.set_ylabel("Amount (BYN)")
+            ax.set_ylabel("Amount (₹)")
             ax.grid(True, alpha=0.3)
             st.pyplot(fig)
         with c2:
@@ -99,7 +99,7 @@ if uploaded:
             st.subheader("Spending by Account")
             fig3, ax3 = plt.subplots(figsize=(7,3))
             ax3.bar(acct_totals.index, acct_totals.values, color=['#9b59b6','#3498db','#e74c3c'])
-            ax3.set_ylabel("Amount (BYN)")
+            ax3.set_ylabel("Amount (₹)")
             st.pyplot(fig3)
         with c4:
             st.subheader("Spending by Day of Week")
@@ -109,7 +109,7 @@ if uploaded:
             ax4.bar(range(len(dow)), dow.values, color='#e67e22')
             ax4.set_xticks(range(len(dow)))
             ax4.set_xticklabels([day_names[i] for i in dow.index])
-            ax4.set_ylabel("Amount (BYN)")
+            ax4.set_ylabel("Amount (₹)")
             st.pyplot(fig4)
 
     with tab2:
@@ -159,12 +159,12 @@ if uploaded:
                         ha='center', color='red')
         ax5.legend()
         ax5.grid(True, alpha=0.3)
-        ax5.set_ylabel("Amount (BYN)")
+        ax5.set_ylabel("Amount (₹)")
         st.pyplot(fig5)
 
         st.subheader("Forecasted Values")
         for l, v in zip(labels, forecast):
-            st.write(f"**{l}** → {v:.0f} BYN")
+            st.write(f"**{l}** → {v:.0f} ₹")
 
     with tab4:
         st.subheader("💬 AI Financial Advisor")
@@ -192,20 +192,20 @@ if uploaded:
                 detected_cost = int(nums[0])
                 detected_item = 'item'
 
-            reply = f"Your avg monthly spend: **{avg_monthly:.0f} BYN**\n\n"
-            reply += f" Last month: **{last_month:.0f} BYN** | Remaining budget: **{remaining:.0f} BYN**\n\n"
+            reply = f"Your avg monthly spend: **{avg_monthly:.0f} ₹**\n\n"
+            reply += f" Last month: **{last_month:.0f} ₹** | Remaining budget: **{remaining:.0f} ₹**\n\n"
 
             if detected_item and detected_cost:
-                reply += f" Purchase detected: **{detected_item.title()}** (~{detected_cost} BYN)\n\n"
+                reply += f" Purchase detected: **{detected_item.title()}** (~{detected_cost} ₹)\n\n"
                 if remaining >= detected_cost:
-                    reply += f" YES you can buy it! ~{remaining-detected_cost:.0f} BYN will remain."
+                    reply += f" YES you can buy it! ~{remaining-detected_cost:.0f} ₹ will remain."
                 elif remaining >= detected_cost * 0.5:
-                    reply += f" RISKY! You're short by {detected_cost-remaining:.0f} BYN. Wait 1 more month."
+                    reply += f" RISKY! You're short by {detected_cost-remaining:.0f} ₹. Wait 1 more month."
                 else:
-                    reply += f" NOT recommended. Short by {detected_cost-remaining:.0f} BYN. Save for 2-3 months."
+                    reply += f" NOT recommended. Short by {detected_cost-remaining:.0f} ₹. Save for 2-3 months."
             elif 'save' in q_low:
                 saving = avg_monthly * 0.15
-                reply += f" Cut 15% from **{cat_totals.index[0]}** → save ~{saving:.0f} BYN/month!"
+                reply += f" Cut 15% from **{cat_totals.index[0]}** → save ~{saving:.0f} ₹/month!"
             else:
                 reply += "Ask me things like:\n- *Can I afford a laptop?*\n- *What if I buy a phone?*\n- *How can I save money?*"
             return reply
