@@ -214,7 +214,7 @@ except:
         df = load_data(uploaded)
         st.success(f"✅ Loaded {len(df)} transactions!")
     else:
-        st.info("Upload your CSV file to begin")
+        st.info(" Upload your CSV file to begin")
         st.stop()
 
 # ── Sidebar ──
@@ -227,12 +227,12 @@ with st.sidebar:
     df = df[df['month_name'].isin(selected_months) & df['category'].isin(selected_cats)]
     st.info(f"Showing {len(df)} transactions")
     st.markdown("---")
-    st.markdown("** About**")
+    st.markdown("**📌 About**")
     st.markdown("Built with Python, Streamlit & Scikit-learn")
 
 # ── Metrics ──
 col1, col2, col3, col4 = st.columns(4)
-col1.metric(" TOTAL SPENT", f"₹{df['amount'].sum():,.0f}")
+col1.metric("TOTAL SPENT", f"₹{df['amount'].sum():,.0f}")
 col2.metric("TRANSACTIONS", f"{len(df):,}")
 monthly_avg = df.groupby('month')['amount'].sum().mean()
 col3.metric("AVG / MONTH", f"₹{monthly_avg:,.0f}")
@@ -240,7 +240,7 @@ col4.metric("CATEGORIES", df['category'].nunique())
 
 st.divider()
 
-tab1, tab2, tab3, tab4 = st.tabs([" Overview"," ML Models","🔮Forecast","💬 AI Advisor"])
+tab1, tab2, tab3, tab4 = st.tabs(["Overview","ML Models"," Forecast","💬 AI Advisor"])
 
 # ── Colors ──
 DARK_BG  = '#0d1117'
@@ -286,4 +286,251 @@ with tab1:
                         alpha=0.2, color=YELLOW)
         ax.set_xticks(monthly_df['month'])
         ax.set_xticklabels([month_map[m] for m in monthly_df['month']],
-                           rotation=45,
+                           rotation=45, color=TEXT)
+        ax.set_ylabel("Amount (₹)", color=SUBTEXT)
+        plt.tight_layout()
+        st.pyplot(fig)
+
+    with c2:
+        st.subheader(" Spending by Category")
+        fig2, ax2 = plt.subplots(figsize=(7,4))
+        fig2.patch.set_facecolor(SURFACE)
+        colors = [BLUE, GREEN, YELLOW, ORANGE, PURPLE, RED, '#1abc9c','#e67e22','#95a5a6']
+        top = cat_totals.head(7)
+        others = cat_totals.iloc[7:].sum()
+        vals = list(top.values) + ([others] if others > 0 else [])
+        lbls = list(top.index) + (['Others'] if others > 0 else [])
+        wedges, texts, autotexts = ax2.pie(
+            vals, labels=lbls, autopct='%1.1f%%',
+            colors=colors[:len(vals)], startangle=90, pctdistance=0.82)
+        for t in texts:
+            t.set_color(TEXT); t.set_fontsize(9)
+        for a in autotexts:
+            a.set_color('#ffffff'); a.set_fontweight('bold'); a.set_fontsize(8)
+        ax2.set_facecolor(SURFACE)
+        plt.tight_layout()
+        st.pyplot(fig2)
+
+    c3, c4 = st.columns(2)
+    with c3:
+        st.subheader("Spending by Account")
+        fig3, ax3 = plt.subplots(figsize=(7,3))
+        fig3, ax3 = style_chart(fig3, ax3)
+        bar_colors = [BLUE, GREEN, PURPLE, YELLOW, RED]
+        bars = ax3.bar(range(len(acct_totals)), acct_totals.values,
+                       color=bar_colors[:len(acct_totals)], width=0.5, edgecolor='none')
+        ax3.set_xticks(range(len(acct_totals)))
+        ax3.set_xticklabels(acct_totals.index, rotation=20, color=TEXT)
+        ax3.set_ylabel("Amount (₹)", color=SUBTEXT)
+        for bar, val in zip(bars, acct_totals.values):
+            ax3.text(bar.get_x() + bar.get_width()/2,
+                    bar.get_height() + 20,
+                    f'₹{val:,.0f}', ha='center', color=TEXT, fontsize=8)
+        plt.tight_layout()
+        st.pyplot(fig3)
+
+    with c4:
+        st.subheader(" Spending by Day of Week")
+        fig4, ax4 = plt.subplots(figsize=(7,3))
+        fig4, ax4 = style_chart(fig4, ax4)
+        dow = df.groupby('day_of_week')['amount'].sum()
+        day_names = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+        # ── GREEN weekdays, YELLOW weekends as requested ──
+        bar_cols = [GREEN if i < 5 else YELLOW for i in dow.index]
+        ax4.bar(range(len(dow)), dow.values,
+                color=bar_cols, width=0.6, edgecolor='none')
+        ax4.set_xticks(range(len(dow)))
+        ax4.set_xticklabels([day_names[i] for i in dow.index], color=TEXT)
+        ax4.set_ylabel("Amount (₹)", color=SUBTEXT)
+        plt.tight_layout()
+        st.pyplot(fig4)
+
+with tab2:
+    st.subheader(" Random Forest Classifier")
+
+    @st.cache_resource
+    def train(_df):
+        le_cat  = LabelEncoder()
+        le_acct = LabelEncoder()
+        _df = _df.copy()
+        _df['category_encoded'] = le_cat.fit_transform(_df['category'])
+        _df['account_encoded']  = le_acct.fit_transform(_df['account'])
+        X = _df[['amount','month','day_of_week','week','account_encoded']]
+        y = _df['category_encoded']
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42)
+        rf = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf.fit(X_train, y_train)
+        preds = rf.predict(X_test)
+        acc = accuracy_score(y_test, preds)
+        report = classification_report(
+            y_test, preds, target_names=le_cat.classes_, zero_division=0)
+        return acc, report
+
+    with st.spinner("⚙️ Training model..."):
+        acc, report = train(df)
+
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Accuracy", f"{acc*100:.1f}%")
+    m2.metric("Trees", "100")
+    m3.metric("Features", "5")
+
+    # ── Fixed classification report — dark background, white text ──
+    st.markdown("### Classification Report")
+    st.markdown(
+        f"<pre style='background:#161b22; color:#c9d1d9; padding:16px;"
+        f"border-radius:8px; border:1px solid #30363d;"
+        f"font-size:13px; overflow-x:auto; line-height:1.6;'>{report}</pre>",
+        unsafe_allow_html=True
+    )
+
+with tab3:
+    st.subheader("Expense Forecast — Next 3 Months")
+    lr = LinearRegression()
+    lr.fit(monthly_df[['month']], monthly_df['total'])
+    max_m = monthly_df['month'].max()
+    future_months = pd.DataFrame({'month':[max_m+1, max_m+2, max_m+3]})
+    forecast = lr.predict(future_months)
+    labels = ['Month +1','Month +2','Month +3']
+
+    fig5, ax5 = plt.subplots(figsize=(10,4))
+    fig5, ax5 = style_chart(fig5, ax5)
+    ax5.plot(monthly_df['month'], monthly_df['total'],
+             marker='o', color=BLUE, label='Actual', linewidth=2.5, markersize=7)
+    fx = [monthly_df['month'].iloc[-1]] + list(future_months['month'])
+    fy = [monthly_df['total'].iloc[-1]] + list(forecast)
+    ax5.plot(fx, fy, marker='s', color=ORANGE,
+             linestyle='--', label='Forecast', linewidth=2.5, markersize=7)
+    for x, y, l in zip(future_months['month'], forecast, labels):
+        ax5.annotate(f'₹{y:,.0f}', (x,y),
+                    textcoords='offset points', xytext=(0,12),
+                    ha='center', color=YELLOW, fontweight='bold', fontsize=10)
+    ax5.legend(facecolor=SURFACE, edgecolor=BORDER, labelcolor=TEXT)
+    ax5.set_ylabel("Amount (₹)", color=SUBTEXT)
+    plt.tight_layout()
+    st.pyplot(fig5)
+
+    fc1, fc2, fc3 = st.columns(3)
+    for col, l, v in zip([fc1,fc2,fc3], labels, forecast):
+        col.metric(f" {l}", f"₹{v:,.0f}")
+
+with tab4:
+    st.markdown("""
+    <div style='background:#161b22; border:1px solid #30363d;
+                border-radius:12px; padding:20px; margin-bottom:20px;'>
+        <h3 style='color:#ffffff; margin:0; font-size:1.3rem;'>
+            💬 AI Financial Advisor
+        </h3>
+        <p style='color:#8b949e; margin:6px 0 0 0; font-size:0.9rem;'>
+            Ask me anything about your finances!
+            Try: "Can I afford a laptop?" or "How can I save money?"
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    avg_monthly = monthly_df['total'].mean()
+    last_month  = monthly_df['total'].iloc[-1]
+    budget      = avg_monthly * 1.1
+    remaining   = max(0, budget - last_month)
+
+    ITEM_COSTS = {
+        'laptop':50000,'phone':30000,'clothes':5000,
+        'vacation':20000,'trip':15000,'iphone':80000,
+        'watch':10000,'gym':2000,'course':5000,
+        'bike':80000,'tablet':25000,'headphones':5000,
+        'camera':40000,'tv':35000,'fridge':25000
+    }
+
+    def advisor(q):
+        q_low = q.lower()
+        detected_item, detected_cost = None, None
+        for item, cost in ITEM_COSTS.items():
+            if item in q_low:
+                detected_item, detected_cost = item, cost
+                break
+        nums = re.findall(r'\b(\d{3,6})\b', q_low)
+        if nums and not detected_cost:
+            detected_cost = int(nums[0])
+            detected_item = 'item'
+
+        reply  = f"📊 **Your Financial Summary:**\n"
+        reply += f"- Average monthly spend: **₹{avg_monthly:,.0f}**\n"
+        reply += f"- Last month spent: **₹{last_month:,.0f}**\n"
+        reply += f"- Budget remaining: **₹{remaining:,.0f}**\n\n"
+
+        if detected_item and detected_cost:
+            reply += f"🛒 **Purchase Analysis: {detected_item.title()} (~₹{detected_cost:,})**\n\n"
+            if remaining >= detected_cost:
+                reply += f"✅ **YES, you can afford it!**\nAfter buying, ₹{remaining-detected_cost:,.0f} will remain."
+            elif remaining >= detected_cost * 0.5:
+                reply += f"⚠️ **RISKY!** Short by ₹{detected_cost-remaining:,.0f}. Wait 1 more month."
+            else:
+                reply += f"❌ **Not recommended.** Short by ₹{detected_cost-remaining:,.0f}. Save 2-3 months first."
+        elif any(w in q_low for w in ['save','saving','cut']):
+            saving = avg_monthly * 0.15
+            reply += f"💡 **Savings Tip:**\nCut 15% from **{cat_totals.index[0]}**\n"
+            reply += f"Save ~₹{saving:,.0f}/month = **₹{saving*12:,.0f}/year!** 🎯"
+        elif any(w in q_low for w in ['highest','most','worst','top']):
+            reply += "📌 **Top 3 Spending Categories:**\n"
+            for i,(cat,amt) in enumerate(cat_totals.head(3).items()):
+                reply += f"{i+1}. **{cat}** — ₹{amt:,.0f}\n"
+        elif any(w in q_low for w in ['budget','limit']):
+            reply += f"💰 **Your Monthly Budget:** ₹{budget:,.0f}\n(10% above your average)"
+        elif any(w in q_low for w in ['average','avg','mean']):
+            reply += f"📈 **Average Monthly Spending:** ₹{avg_monthly:,.0f}"
+        else:
+            reply += "💬 **Try asking:**\n"
+            reply += "- *Can I afford a laptop?*\n"
+            reply += "- *Can I buy a phone for 30000?*\n"
+            reply += "- *How can I save money?*\n"
+            reply += "- *What is my highest spending?*\n"
+            reply += "- *What is my monthly budget?*"
+        return reply
+
+    # ── Quick buttons ──
+    st.markdown("<p style='color:#8b949e; font-size:0.85rem; margin-bottom:8px;'>💡 Quick Questions:</p>",
+                unsafe_allow_html=True)
+    qc1, qc2, qc3, qc4 = st.columns(4)
+    quick_q = None
+    with qc1:
+        if st.button("💻 Afford a laptop?"):
+            quick_q = "Can I afford a laptop?"
+    with qc2:
+        if st.button("💰 Save money?"):
+            quick_q = "How can I save money?"
+    with qc3:
+        if st.button("📊 Top spending?"):
+            quick_q = "What is my highest spending?"
+    with qc4:
+        if st.button("📅 My budget?"):
+            quick_q = "What is my monthly budget?"
+
+    if quick_q:
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+        st.session_state.messages.append({"role":"user","content":quick_q})
+        st.session_state.messages.append({"role":"assistant","content":advisor(quick_q)})
+        st.rerun()
+
+    st.divider()
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    if question := st.chat_input("Type your question here... e.g. Can I afford a phone?"):
+        with st.chat_message("user"):
+            st.markdown(question)
+        st.session_state.messages.append({"role":"user","content":question})
+        answer = advisor(question)
+        with st.chat_message("assistant"):
+            st.markdown(answer)
+        st.session_state.messages.append({"role":"assistant","content":answer})
+
+    if st.session_state.messages:
+        if st.button("🗑️ Clear Chat"):
+            st.session_state.messages = []
+            st.rerun()
