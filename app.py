@@ -214,12 +214,12 @@ except:
         df = load_data(uploaded)
         st.success(f"✅ Loaded {len(df)} transactions!")
     else:
-        st.info("👆 Upload your CSV file to begin")
+        st.info("Upload your CSV file to begin")
         st.stop()
 
 # ── Sidebar ──
 with st.sidebar:
-    st.markdown("## 🔍 Filters")
+    st.markdown("##  Filters")
     months = sorted(df['month_name'].unique().tolist())
     selected_months = st.multiselect("Months", months, default=months)
     cats = sorted(df['category'].unique().tolist())
@@ -227,20 +227,20 @@ with st.sidebar:
     df = df[df['month_name'].isin(selected_months) & df['category'].isin(selected_cats)]
     st.info(f"Showing {len(df)} transactions")
     st.markdown("---")
-    st.markdown("**📌 About**")
+    st.markdown("** About**")
     st.markdown("Built with Python, Streamlit & Scikit-learn")
 
 # ── Metrics ──
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("💸 TOTAL SPENT", f"₹{df['amount'].sum():,.0f}")
-col2.metric("🧾 TRANSACTIONS", f"{len(df):,}")
+col1.metric(" TOTAL SPENT", f"₹{df['amount'].sum():,.0f}")
+col2.metric("TRANSACTIONS", f"{len(df):,}")
 monthly_avg = df.groupby('month')['amount'].sum().mean()
-col3.metric("📅 AVG / MONTH", f"₹{monthly_avg:,.0f}")
-col4.metric("🗂️ CATEGORIES", df['category'].nunique())
+col3.metric("AVG / MONTH", f"₹{monthly_avg:,.0f}")
+col4.metric("CATEGORIES", df['category'].nunique())
 
 st.divider()
 
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview","🤖 ML Models","🔮 Forecast","💬 AI Advisor"])
+tab1, tab2, tab3, tab4 = st.tabs([" Overview"," ML Models","🔮Forecast","💬 AI Advisor"])
 
 # ── Colors ──
 DARK_BG  = '#0d1117'
