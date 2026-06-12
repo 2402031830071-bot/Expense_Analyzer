@@ -368,14 +368,20 @@ with tab2:
             return '#c9d1d9'
 
     # Build table HTML
-    table_html = """
+       table_html = """
     <div style='overflow-x:auto; border-radius:10px; border:1px solid #30363d;'>
-    <table style='width:100%; border-collapse:collapse; background:#161b22; font-size:13px;'>
+    <table style='width:100%; border-collapse:collapse; background:#161b22; font-size:13px; table-layout:fixed;'>
+      <colgroup>
+        <col style='width:35%;'>
+        <col style='width:16.25%;'>
+        <col style='width:16.25%;'>
+        <col style='width:16.25%;'>
+        <col style='width:16.25%;'>
+      </colgroup>
       <thead>
         <tr style='background:#21262d;'>
           <th style='padding:14px 20px; text-align:left; color:#58a6ff;
-                     border-bottom:2px solid #30363d; font-weight:600;
-                     min-width:160px;'>Category</th>
+                     border-bottom:2px solid #30363d; font-weight:600;'>Category</th>
           <th style='padding:14px 20px; text-align:center; color:#58a6ff;
                      border-bottom:2px solid #30363d; font-weight:600;'>Precision</th>
           <th style='padding:14px 20px; text-align:center; color:#58a6ff;
@@ -388,6 +394,7 @@ with tab2:
       </thead>
       <tbody>
     """
+
 
     for i, cls in enumerate(classes):
         if cls in report_dict:
