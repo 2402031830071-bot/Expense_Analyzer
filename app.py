@@ -187,11 +187,11 @@ except:
         df = load_data(uploaded)
         st.success(f"✅ Loaded {len(df)} transactions!")
     else:
-        st.info("👆 Upload your CSV file to begin")
+        st.info("Upload your CSV file to begin")
         st.stop()
 
 with st.sidebar:
-    st.markdown("## 🔍 Filters")
+    st.markdown("## Filters")
     months = sorted(df['month_name'].unique().tolist())
     selected_months = st.multiselect("Months", months, default=months)
     cats = sorted(df['category'].unique().tolist())
@@ -199,15 +199,15 @@ with st.sidebar:
     df = df[df['month_name'].isin(selected_months) & df['category'].isin(selected_cats)]
     st.info(f"Showing {len(df)} transactions")
     st.markdown("---")
-    st.markdown("**📌 About**")
+    st.markdown("**About**")
     st.markdown("Built with Python, Streamlit & Scikit-learn")
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("💸 TOTAL SPENT", f"₹{df['amount'].sum():,.0f}")
-col2.metric("🧾 TRANSACTIONS", f"{len(df):,}")
+col1.metric("TOTAL SPENT", f"₹{df['amount'].sum():,.0f}")
+col2.metric("TRANSACTIONS", f"{len(df):,}")
 monthly_avg = df.groupby('month')['amount'].sum().mean()
-col3.metric("📅 AVG / MONTH", f"₹{monthly_avg:,.0f}")
-col4.metric("🗂️ CATEGORIES", df['category'].nunique())
+col3.metric("AVG / MONTH", f"₹{monthly_avg:,.0f}")
+col4.metric("CATEGORIES", df['category'].nunique())
 
 st.divider()
 
@@ -259,7 +259,7 @@ with tab1:
         st.pyplot(fig)
 
     with c2:
-        st.subheader("🥧 Spending by Category")
+        st.subheader("Spending by Category")
         fig2, ax2 = plt.subplots(figsize=(7, 4))
         fig2.patch.set_facecolor(SURFACE)
         colors = [BLUE, GREEN, YELLOW, ORANGE, PURPLE, RED, '#1abc9c', '#e67e22', '#95a5a6']
@@ -280,7 +280,7 @@ with tab1:
 
     c3, c4 = st.columns(2)
     with c3:
-        st.subheader("🏦 Spending by Account")
+        st.subheader("Spending by Account")
         fig3, ax3 = plt.subplots(figsize=(7, 3))
         fig3, ax3 = style_chart(fig3, ax3)
         bar_colors = [BLUE, GREEN, PURPLE, YELLOW, RED]
@@ -297,7 +297,7 @@ with tab1:
         st.pyplot(fig3)
 
     with c4:
-        st.subheader("📅 Day of Week Spending")
+        st.subheader("Day of Week Spending")
         fig4, ax4 = plt.subplots(figsize=(7, 3))
         fig4, ax4 = style_chart(fig4, ax4)
         dow = df.groupby('day_of_week')['amount'].sum()
@@ -311,7 +311,7 @@ with tab1:
         st.pyplot(fig4)
 
 with tab2:
-    st.subheader("🤖 Random Forest Classifier")
+    st.subheader("Random Forest Classifier")
 
     @st.cache_resource
     def train(_df):
@@ -336,12 +336,12 @@ with tab2:
         acc, report_dict, classes = train(df)
 
     m1, m2, m3 = st.columns(3)
-    m1.metric("🎯 Accuracy", f"{acc*100:.1f}%")
-    m2.metric("🌲 Trees", "100")
-    m3.metric("📊 Features", "5")
+    m1.metric("Accuracy", f"{acc*100:.1f}%")
+    m2.metric("Trees", "100")
+    m3.metric("Features", "5")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 📋 Classification Report")
+    st.markdown("###Classification Report")
 
     def score_color(val):
         try:
