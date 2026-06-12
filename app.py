@@ -368,7 +368,7 @@ with tab2:
             return '#c9d1d9'
 
     # Build table HTML
-       table_html = """
+       table_html ="""
     <div style='overflow-x:auto; border-radius:10px; border:1px solid #30363d;'>
     <table style='width:100%; border-collapse:collapse; background:#161b22; font-size:13px; table-layout:fixed;'>
       <colgroup>
